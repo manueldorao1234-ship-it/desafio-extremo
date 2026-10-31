@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Desafío Extremo</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#101525;color:white;font-family:Arial;text-align:center;overflow:hidden}
+h1{color:#ffcc33;margin:22px 0 5px}
+p{color:#ccc}
+#game{display:block;margin:15px auto;background:#202c43;border:3px solid #ffcc33;border-radius:12px;max-width:94vw;touch-action:manipulation}
+button{background:#ffcc33;color:#111;border:0;padding:14px 28px;border-radius:12px;font-size:18px;font-weight:bold}
+#info{font-size:20px;margin:12px}
+</style>
+</head>
+<body>
+<h1>DESAFÍO EXTREMO</h1>
+<p>¡Esquivá los obstáculos y superá tu récord!</p>
+<div id="info">Puntos: 0 | Récord: 0</div>
+<canvas id="game" width="360" height="500"></canvas>
+<button id="start">COMENZAR</button>
+<p>Tocá a la izquierda o derecha para moverte</p>
+<script>
+const c=document.getElementById("game");
+const ctx=c.getContext("2d");
+const info=document.getElementById("info");
+const btn=document.getElementById("start");
+let player={x:165,y:430,w:32,h:32};
+let blocks=[],score=0,record=Number(localStorage.getItem("recordDE")||0);
+let running=false,frame=0;
+function draw(){
+ctx.clearRect(0,0,360,500);
+ctx.fillStyle="#202c43";ctx.fillRect(0,0,360,500);
+ctx.fillStyle="#43516b";
+for(let y=0;y<500;y+=40)ctx.fillRect(178,y,4,20);
+ctx.fillStyle="#36e0a0";
+ctx.fillRect(player.x,player.y,player.w,player.h);
+ctx.fillStyle="#fff";
+ctx.font="20px Arial";ctx.fillText("▲",player.x+5,player.y+23);
+ctx.fillStyle="#ff5252";
+blocks.forEach(b=>ctx.fillRect(b.x,b.y,b.w,b.h));
+}
+function endGame(){
+running=false;
+if(score>record){record=score;localStorage.setItem("recordDE",record)}
+btn.textContent="VOLVER A JUGAR";
+info.textContent="¡Fin del juego! Puntos: "+score+" | Récord: "+record;
+draw();
+}
+function loop(){
+if(!running)return;
+frame++;
+if(frame%38===0)blocks.push({x:Math.random()*310,y:-35,w:35,h:35});
+blocks.forEach(b=>b.y+=3+score*.08);
+blocks=blocks.filter(b=>b.y<510);
+for(let b of blocks){
+if(player.x<b.x+b.w&&player.x+player.w>b.x&&player.y<b.y+b.h&&player.y+player.h>b.y){endGame();return}
+}
+if(frame%10===0)score++;
+info.textContent="Puntos: "+score+" | Récord: "+record;
+draw();
+requestAnimationFrame(loop);
+}
+function start(){
+score=0;frame=0;blocks=[];player.x=165;
+running=true;btn.textContent="JUGANDO...";
+loop();
+}
+c.addEventListener("pointerdown",e=>{
+if(!running)return;
+let r=c.getBoundingClientRect();
+let x=(e.clientX-r.left)*360/r.width;
+player.x=x<180?65:263;
+});
+btn.addEventListener("click",()=>{if(!running)start()});
+draw();
+info.textContent="Puntos: 0 | Récord: "+record;
+</script>
+</body>
+</html>
